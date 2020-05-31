@@ -25,15 +25,20 @@
 
 #pragma once
 
+#include <locale>
 #include <unordered_map>
 #include <string>
 #include <vector>
+
+#include <iostream>
 
 using namespace std;
 
 class ArgumentManager
 {
-  // internal Types
+  //======================//
+  //    Internal Types    //
+  //===============================================================================================//
 public:
   typedef vector<string> Value;
 
@@ -42,40 +47,34 @@ public:
     friend class ArgumentManager;
 
   public:
-    Argument(const string &name, bool optional = false, size_t num = 1, const string &help = "")
-        : mName(name), mAltName(""), mOptional(optional), mNum(num), mHelp(help)
+    inline Argument *optional(bool flag)
     {
+      mOptional = flag;
+      return this;
     }
 
-    Argument(const string &name, const string &altName, bool optional = false, size_t num = 1, const string &help = "")
-        : mName(name), mAltName(altName), mOptional(optional), mNum(num), mHelp(help)
+    inline Argument *help(const string &text)
     {
+      mHelp = text;
+      return this;
     }
 
     virtual ~Argument() {}
 
-    inline Argument &alt_name(const string &altName)
+  private:
+    Argument()
+        : mName(""), mAltName(""), mOptional(true), mHelp("")
     {
-      mAltName = altName;
-      return *this;
     }
 
-    inline Argument &optional(bool flag)
+    Argument(const string &name, bool optional = false, const string &help = "")
+        : mName(name), mAltName(""), mOptional(optional), mHelp(help)
     {
-      mOptional = flag;
-      return *this;
     }
 
-    inline Argument &num_value(bool num)
+    Argument(const string &name, const string &altName, bool optional = false, const string &help = "")
+        : mName(name), mAltName(altName), mOptional(optional), mHelp(help)
     {
-      mNum = num;
-      return *this;
-    }
-
-    inline Argument &help(const string &text)
-    {
-      mHelp = text;
-      return *this;
     }
 
     string to_string() const
@@ -83,39 +82,80 @@ public:
       string s = "* ";
       s += mName;
       if (mAltName.size() > 0)
-        s += " ; " + mAltName;
-      s += " | nval = ";
-      s += std::to_string(mNum);
-      s += mOptional ? ", [optional] : " : ", [required] : ";
-      s += (mHelp + "\n");
+        s += ", " + mAltName;
+      if (mHelp.size() > 0)
+        s += (mAltName.size() == 0) ? "\t\t" : "\t";
+      s += mHelp;
+      s += "\n";
 
       return s;
     }
 
   private:
-    string mName;    //argument name, must start with "-""
-    string mAltName; //alternative name, must start with "--""
+    string mName;    //argument name
+    string mAltName; //alternative name
 
     bool mOptional; //indicates whether the argument is optional
-    size_t mNum;    //specifies the number of values attached to the argument
 
     string mHelp; //a description of the argument used for usage
   };
-
+  //===============================================================================================//
 public:
   ArgumentManager(const string &programName = "", const string &description = "")
       : mBinName(""), mProgramName(programName), mDescription(description)
   {
+    add("-h", "--help", 0, true, "output the program's usage");
   }
 
   virtual ~ArgumentManager() {}
 
-  int parse(int argc, char **argv)
+  //======================//
+  //      parse cli       //
+  //===============================================================================================//
+  size_t parse(int argc, char **argv)
   {
+    vector<string> tokens(argv, argv + argc);
+
+    //get binary name
+    size_t pos = tokens[0].find_last_of("/\\");
+    mBinName = tokens[0].substr(pos + 1);
+
+    for (size_t i = 1; i < tokens.size();)
+    {
+      if (!is_valid_name(tokens[i]))
+      {
+        mErrorMessages.push_back(tokens[i] + " is not a valid option");
+        i += 1;
+        continue;
+      }
+
+      auto search = mIndices.find(tokens[i]);
+      if (search == mIndices.end())
+      {
+        mErrorMessages.push_back(tokens[i] + " is not a known option");
+        i += 1;
+        continue;
+      }
+
+      size_t index = search->second;
+      for (size_t j = 0; j < mValues[index].size(); ++j)
+      {
+        size_t current = i + j + 1;
+        if (current >= tokens.size() || is_valid_name(tokens[current]))
+          mErrorMessages.push_back(tokens[i] + " has less values than expected");
+        else
+          mValues[index].at(j) = tokens[current];
+      }
+
+      i += mValues[index].size() + 1;
+    }
 
     return mErrorMessages.size();
   }
 
+  //======================//
+  //   prog information   //
+  //===============================================================================================//
   string usage() const
   {
     string usage = "";
@@ -133,14 +173,15 @@ public:
     }
 
     //write the usage
-    usage += "usage : " + mBinName;
+    usage += "usage : " + mBinName + " [Options]\n";
+    usage += "Required options:\n";
     for (auto &arg : mArgs)
       if (!arg.mOptional)
-        usage += " " + arg.mName + " <values ...>";
-    usage += "\n";
-    usage += "argument list :\n";
+        usage += " " + arg.to_string();
+    usage += "Optional options:\n";
     for (auto &arg : mArgs)
-      usage += " " + arg.to_string();
+      if (arg.mOptional)
+        usage += " " + arg.to_string();
 
     return usage;
   }
@@ -148,12 +189,16 @@ public:
   string error_messages() const
   {
     string msg = "";
+    int i = 0;
     for (const auto &s : mErrorMessages)
-      msg += (s + "\n");
+      msg += (" " + to_string(++i) + ".  " + s + "\n");
     return msg;
   }
 
-  Argument &add(const string &name, bool optional = false, size_t num = 1, const string &help = "")
+  //======================//
+  //     add Argument     //
+  //===============================================================================================//
+  Argument *add(const string &name, size_t num = 1, bool optional = false, const string &help = "")
   {
     size_t n = num == 0 ? 1 : num;
     Value defaultValue;
@@ -164,39 +209,70 @@ public:
     return add(name, defaultValue, optional, help);
   }
 
-  Argument &add(const string &name, const Value &defaultValue, bool optional = false, const string &help = "")
+  Argument *add(const string &name, const Value &defaultValue, bool optional = false, const string &help = "")
   {
+
+    if (!is_valid_name(name))
+    {
+      mErrorMessages.push_back(name + " is not a valid option name, options must start with - or -- followed by a letter");
+      return nullptr;
+    }
+
     auto search = mIndices.find(name);
     if (search == mIndices.end())
     {
-      size_t id = mIndices.size();
+      size_t id = mArgs.size();
       mIndices[name] = id;
-      mArgs.push_back(Argument(name, optional, defaultValue.size(), help));
+      mArgs.push_back(Argument(name, optional, help));
       mValues.push_back(defaultValue);
 
-      return mArgs[id];
+      return &mArgs[id];
     }
 
-    //else update the found argument
-    size_t id = search->second;
-    mArgs[id].mOptional = optional;
-    mArgs[id].mNum = defaultValue.size();
-    mArgs[id].mHelp = help;
-    mValues[id] = defaultValue;
-
-    return mArgs[id];
+    mErrorMessages.push_back(name + " option already exists.");
+    return nullptr;
   }
 
-  Argument &add(const string &name, const string &altname, bool optional = false, size_t num = 1, const string &help = "")
+  Argument *add(const string &name, const string &altname, size_t num = 1, bool optional = false, const string &help = "")
   {
-    return add(name, optional, num, help).alt_name(altname);
+    size_t n = num == 0 ? 1 : num;
+    Value defaultValue;
+    defaultValue.reserve(n);
+    for (int i = 0; i < n; ++i)
+      defaultValue.emplace_back("0");
+
+    return add(name, altname, defaultValue, optional, help);
   }
 
-  Argument &add(const string &name, const string &altname, const Value &defaultValue, bool optional = false, size_t num = 1, const string &help = "")
+  Argument *add(const string &name, const string &altname, const Value &defaultValue, bool optional = false, const string &help = "")
   {
-    return add(name, defaultValue, num, help).alt_name(altname);
+    if (!is_valid_name(name) || !is_valid_name(altname))
+    {
+      mErrorMessages.push_back(name + " is not a valid option name, options must start with - or -- followed by a letter.");
+      return nullptr;
+    }
+
+    auto search1 = mIndices.find(name);
+    auto search2 = mIndices.find(altname);
+
+    if (search1 == mIndices.end() && search2 == mIndices.end())
+    {
+      size_t id = mArgs.size();
+      mIndices[name] = id;
+      mIndices[altname] = id;
+      mArgs.push_back(Argument(name, altname, optional, help));
+      mValues.push_back(defaultValue);
+
+      return &mArgs[id];
+    }
+
+    mErrorMessages.push_back(name + " & " + altname + " option already exists.");
+    return nullptr;
   }
 
+  //========================//
+  //   get argument value   //
+  //===============================================================================================//
   template <typename T>
   T value(const string &name, size_t id = 0) const
   {
@@ -206,7 +282,7 @@ public:
     if (search != mIndices.end())
     {
       size_t index = search->second;
-      if (id < mArgs[index].mNum && mArgs[index].mNum != 0)
+      if (id < mValues[index].size() && mValues[index].size() != 0)
         get_value<T>(index, id, out);
     }
 
@@ -231,7 +307,7 @@ public:
     if (search != mIndices.end())
     {
       size_t index = search->second;
-      size_t num = mArgs[index].mNum;
+      size_t num = mValues[index].size();
       out.reserve(num);
       for (size_t i = 0; i < num; ++i)
       {
@@ -242,7 +318,20 @@ public:
     }
   }
 
+  //========================//
+  //    helper functions    //
+  //===============================================================================================//
 private:
+  bool is_valid_name(const string &name)
+  {
+    if (name.size() <= 1 || name[0] != '-')
+      return false;
+    if (name.size() <= 2)
+      return bool(isalpha(name[1]));
+    else
+      return bool(isalpha(name[(name[1] == '-') ? 2 : 1]));
+  }
+
   template <typename T>
   inline void get_value(size_t argIndex, size_t valueIndex, T &out) const
   {
@@ -262,7 +351,9 @@ private:
       out = stold(mValues[argIndex].at(valueIndex));
   }
 
-  // class attributes
+  //========================//
+  //    class attributes    //
+  //===============================================================================================//
 private:
   string mBinName;
   string mProgramName;
