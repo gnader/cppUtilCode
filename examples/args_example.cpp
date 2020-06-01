@@ -12,13 +12,19 @@ int main(int argc, char **argv)
   args.add("-a3")->optional(true)->help("this is an optional option #3");
 
   //this will fail and adds an error, option names must start with - or --
-  args.add("a4", true, 4, "this is an optional option #4");
+  // args.add("a4", true, 4, "this is an optional option #4");
 
   if (args.parse(argc, argv))
     std::cout << args.error_messages() << std::endl
               << std::endl;
 
-  std::cout << args.usage() << std::endl;
+  if (args.found("-h") || args.found("--help"))
+    std::cout << args.usage() << std::endl;
+
+  cout << args.get_value<string>("-a1") << endl;
+
+  //! not working !//
+  // cout << args.get_value<int>("-a2", 1) << endl;
 
   return 0;
 }

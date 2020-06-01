@@ -1,5 +1,5 @@
-/* args.h - A simple argument manager for comand line interfaces
- *
+/* args.h - v1.0
+ *  
  * LICENCE
  * Public Domain (www.unlicense.org)
  * This is free and unencumbered software released into the public domain.
@@ -23,14 +23,26 @@
  *  written in 2020 by Georges NADER
  */
 
+/**
+ * Brief
+ * A simple class that manages CLI arguments.
+ * 
+ */
+
+//! CURRENT ISSUES !//
+//  - casting to other than "string" in get_value<>() and get_values<>() is not working
+
+//TODO
+//  - Add the possiblity to validate parsed input
+//  - Better management of errors (warnings vs. errors)
+//  - Add support for positional arguments
+
 #pragma once
 
 #include <locale>
 #include <unordered_map>
 #include <string>
 #include <vector>
-
-#include <iostream>
 
 using namespace std;
 
@@ -40,8 +52,6 @@ class ArgumentManager
   //    Internal Types    //
   //===============================================================================================//
 public:
-  typedef vector<string> Value;
-
   class Argument
   {
     friend class ArgumentManager;
@@ -99,6 +109,37 @@ public:
 
     string mHelp; //a description of the argument used for usage
   };
+
+  class Value
+  {
+    friend class ArgumentManager;
+
+  public:
+    virtual ~Value() {}
+
+  private:
+    Value()
+        : found(false)
+    {
+    }
+
+    Value(int nval, const string &init)
+        : found(false)
+    {
+      value.reserve(nval);
+      for (size_t i = 0; i < nval; ++i)
+        value.emplace_back(init);
+    }
+
+    Value(const vector<string> &init)
+        : value(init)
+    {
+    }
+
+  private:
+    bool found;
+    vector<string> value;
+  };
   //===============================================================================================//
 public:
   ArgumentManager(const string &programName = "", const string &description = "")
@@ -138,16 +179,17 @@ public:
       }
 
       size_t index = search->second;
-      for (size_t j = 0; j < mValues[index].size(); ++j)
+      mValues[index].found = true;
+      for (size_t j = 0; j < mValues[index].value.size(); ++j)
       {
         size_t current = i + j + 1;
         if (current >= tokens.size() || is_valid_name(tokens[current]))
           mErrorMessages.push_back(tokens[i] + " has less values than expected");
         else
-          mValues[index].at(j) = tokens[current];
+          mValues[index].value.at(j) = tokens[current];
       }
 
-      i += mValues[index].size() + 1;
+      i += mValues[index].value.size() + 1;
     }
 
     return mErrorMessages.size();
@@ -200,16 +242,11 @@ public:
   //===============================================================================================//
   Argument *add(const string &name, size_t num = 1, bool optional = false, const string &help = "")
   {
-    size_t n = num == 0 ? 1 : num;
-    Value defaultValue;
-    defaultValue.reserve(n);
-    for (int i = 0; i < n; ++i)
-      defaultValue.emplace_back("0");
-
-    return add(name, defaultValue, optional, help);
+    Value init(num, "0");
+    return add(name, init, optional, help);
   }
 
-  Argument *add(const string &name, const Value &defaultValue, bool optional = false, const string &help = "")
+  Argument *add(const string &name, const Value &init, bool optional = false, const string &help = "")
   {
 
     if (!is_valid_name(name))
@@ -224,7 +261,7 @@ public:
       size_t id = mArgs.size();
       mIndices[name] = id;
       mArgs.push_back(Argument(name, optional, help));
-      mValues.push_back(defaultValue);
+      mValues.push_back(init);
 
       return &mArgs[id];
     }
@@ -235,16 +272,11 @@ public:
 
   Argument *add(const string &name, const string &altname, size_t num = 1, bool optional = false, const string &help = "")
   {
-    size_t n = num == 0 ? 1 : num;
-    Value defaultValue;
-    defaultValue.reserve(n);
-    for (int i = 0; i < n; ++i)
-      defaultValue.emplace_back("0");
-
-    return add(name, altname, defaultValue, optional, help);
+    Value init(num, "0");
+    return add(name, altname, init, optional, help);
   }
 
-  Argument *add(const string &name, const string &altname, const Value &defaultValue, bool optional = false, const string &help = "")
+  Argument *add(const string &name, const string &altname, const Value &init, bool optional = false, const string &help = "")
   {
     if (!is_valid_name(name) || !is_valid_name(altname))
     {
@@ -261,7 +293,7 @@ public:
       mIndices[name] = id;
       mIndices[altname] = id;
       mArgs.push_back(Argument(name, altname, optional, help));
-      mValues.push_back(defaultValue);
+      mValues.push_back(init);
 
       return &mArgs[id];
     }
@@ -274,7 +306,7 @@ public:
   //   get argument value   //
   //===============================================================================================//
   template <typename T>
-  T value(const string &name, size_t id = 0) const
+  T get_value(const string &name, size_t id = 0) const
   {
     T out;
 
@@ -282,7 +314,8 @@ public:
     if (search != mIndices.end())
     {
       size_t index = search->second;
-      if (id < mValues[index].size() && mValues[index].size() != 0)
+      size_t nVal = mValues[index].value.size();
+      if (nVal != 0 && id < nVal)
         get_value<T>(index, id, out);
     }
 
@@ -290,16 +323,16 @@ public:
   }
 
   template <typename T>
-  vector<T> values(const string &name) const
+  vector<T> get_values(const string &name) const
   {
     vector<T> out;
-    values(name, out);
+    get_values(name, out);
 
     return out;
   }
 
   template <typename T>
-  void values(const string &name, vector<T> &out) const
+  void get_values(const string &name, vector<T> &out) const
   {
     out.clear(); //making sure the vector is empty
 
@@ -307,15 +340,28 @@ public:
     if (search != mIndices.end())
     {
       size_t index = search->second;
-      size_t num = mValues[index].size();
-      out.reserve(num);
-      for (size_t i = 0; i < num; ++i)
+      size_t nVal = mValues[index].value.size();
+      out.reserve(nVal);
+      for (size_t i = 0; i < nVal; ++i)
       {
         T temp;
         get_value<T>(index, i, temp);
         out.push_back(temp);
       }
     }
+  }
+
+  //=====================================//
+  //   check if an argument was parsed   //
+  //===============================================================================================//
+
+  bool found(const string &name)
+  {
+    auto search = mIndices.find(name);
+    if (search == mIndices.end())
+      return false;
+
+    return mValues[search->second].found;
   }
 
   //========================//
@@ -336,19 +382,19 @@ private:
   inline void get_value(size_t argIndex, size_t valueIndex, T &out) const
   {
     if (typeid(out) == typeid(string))
-      out = mValues[argIndex].at(valueIndex);
+      out = mValues[argIndex].value.at(valueIndex);
     else if (typeid(out) == typeid(int))
-      out = stoi(mValues[argIndex].at(valueIndex));
+      out = stoi(mValues[argIndex].value.at(valueIndex));
     else if (typeid(out) == typeid(float))
-      out = stof(mValues[argIndex].at(valueIndex));
+      out = stof(mValues[argIndex].value.at(valueIndex));
     else if (typeid(out) == typeid(double))
-      out = stod(mValues[argIndex].at(valueIndex));
+      out = stod(mValues[argIndex].value.at(valueIndex));
     else if (typeid(out) == typeid(long))
-      out = stol(mValues[argIndex].at(valueIndex));
+      out = stol(mValues[argIndex].value.at(valueIndex));
     else if (typeid(out) == typeid(long long))
-      out = stoll(mValues[argIndex].at(valueIndex));
+      out = stoll(mValues[argIndex].value.at(valueIndex));
     else if (typeid(out) == typeid(long double))
-      out = stold(mValues[argIndex].at(valueIndex));
+      out = stold(mValues[argIndex].value.at(valueIndex));
   }
 
   //========================//
