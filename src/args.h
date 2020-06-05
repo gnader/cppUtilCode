@@ -1,4 +1,4 @@
-/* args.h - v1.0
+/* args.h - v1.1
  *  
  * LICENCE
  * Public Domain (www.unlicense.org)
@@ -24,90 +24,125 @@
  */
 
 /**
- * Brief
+ * @Brief
  * A simple class that manages CLI arguments.
- * 
  */
 
 //TODO
-//  - Add the possiblity to validate parsed input
+////  - Add the possiblity to validate parsed input
 //  - Better management of errors (warnings vs. errors)
 //  - Add support for positional arguments
 
 #pragma once
 
+#include <functional>
 #include <locale>
-#include <unordered_map>
-#include <string>
-#include <vector>
-
-#include <iostream>
 #include <sstream>
-
-using namespace std;
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 class ArgumentManager
 {
   //======================//
   //    Internal Types    //
   //===============================================================================================//
+private:
+  struct Info
+  {
+    std::string name;
+    std::string altname;
+    std::string help;
+
+    bool optional;
+    bool quiet;
+
+    Info(const std::string &_name = "",
+         const std::string &_altname = "",
+         const std::string &_help = "",
+         bool _optional = true, bool _quiet = false)
+        : name(_name), altname(_altname), help(_help), optional(_optional), quiet(_quiet)
+    {
+    }
+  };
+
+  struct Validator
+  {
+    typedef std::function<bool(const std::string &)> FunctionType;
+    FunctionType fn;
+    std::string message;
+
+    Validator(
+        const FunctionType &_fn = [](const auto &in) { return true; },
+        const std::string &_message = "")
+        : fn(_fn), message(_message)
+    {
+    }
+  };
+
 public:
   class Argument
   {
     friend class ArgumentManager;
 
   public:
-    inline Argument *optional(bool flag)
+    inline Argument *optional(bool _optional)
     {
-      mOptional = flag;
+      mInfo.optional = _optional;
       return this;
     }
 
-    inline Argument *help(const string &text)
+    inline Argument *help(const std::string &_help)
     {
-      mHelp = text;
+      mInfo.help = _help;
       return this;
     }
 
-    virtual ~Argument() {}
+    inline Argument *validator(const std::function<bool(const std::string &)> &fn, const std::string &message = "")
+    {
+      mValidator.fn = fn;
+      mValidator.message = message;
+      return this;
+    }
+
+    virtual ~Argument()
+    {
+    }
 
   private:
     Argument()
-        : mName(""), mAltName(""), mOptional(true), mHelp("")
+        : mInfo("", "", "", true, false)
     {
     }
 
-    Argument(const string &name, bool optional = false, const string &help = "")
-        : mName(name), mAltName(""), mOptional(optional), mHelp(help)
+    Argument(const std::string &name, bool optional = false, const std::string &help = "")
+        : mInfo(name, "", help, optional, false)
     {
     }
 
-    Argument(const string &name, const string &altName, bool optional = false, const string &help = "")
-        : mName(name), mAltName(altName), mOptional(optional), mHelp(help)
+    Argument(const std::string &name, const std::string &altname, bool optional = false, const std::string &help = "")
+        : mInfo(name, altname, help, optional, false)
     {
     }
 
-    string to_string() const
+    std::string to_string() const
     {
-      string s = "* ";
-      s += mName;
-      if (mAltName.size() > 0)
-        s += ", " + mAltName;
-      if (mHelp.size() > 0)
-        s += (mAltName.size() == 0) ? "\t\t" : "\t";
-      s += mHelp;
+      std::string s = "* ";
+
+      s += mInfo.name;
+      if (mInfo.altname.size() > 0)
+        s += ", " + mInfo.altname;
+      if (mInfo.help.size() > 0)
+        s += (mInfo.altname.size() == 0) ? "\t\t" : "\t";
+      s += mInfo.help;
       s += "\n";
 
       return s;
     }
 
   private:
-    string mName;    //argument name
-    string mAltName; //alternative name
-
-    bool mOptional; //indicates whether the argument is optional
-
-    string mHelp; //a description of the argument used for usage
+    Info mInfo;
+    Validator mValidator;
   };
 
   class Value
@@ -123,7 +158,7 @@ public:
     {
     }
 
-    Value(int nval, const string &init)
+    Value(int nval, const std::string &init)
         : found(false)
     {
       value.reserve(nval);
@@ -131,18 +166,18 @@ public:
         value.emplace_back(init);
     }
 
-    Value(const vector<string> &init)
+    Value(const std::vector<std::string> &init)
         : value(init)
     {
     }
 
   private:
     bool found;
-    vector<string> value;
+    std::vector<std::string> value;
   };
   //===============================================================================================//
 public:
-  ArgumentManager(const string &programName = "", const string &description = "")
+  ArgumentManager(const std::string &programName = "", const std::string &description = "")
       : mBinName(""), mProgramName(programName), mDescription(description)
   {
     add("-h", "--help", 0, true, "output the program's usage");
@@ -155,7 +190,7 @@ public:
   //===============================================================================================//
   size_t parse(int argc, char **argv)
   {
-    vector<string> tokens(argv, argv + argc);
+    std::vector<std::string> tokens(argv, argv + argc);
 
     //get binary name
     size_t pos = tokens[0].find_last_of("/\\");
@@ -180,13 +215,20 @@ public:
 
       size_t index = search->second;
       mValues[index].found = true;
+      bool status = true;
       for (size_t j = 0; j < mValues[index].value.size(); ++j)
       {
         size_t current = i + j + 1;
         if (current >= tokens.size() || is_valid_name(tokens[current]))
           mErrorMessages.push_back(tokens[i] + " has less values than expected");
         else
+        {
           mValues[index].value.at(j) = tokens[current];
+          if (!mArgs[index].mValidator.fn(tokens[current]))
+            mErrorMessages.push_back(tokens[current] +
+                                     " does not satify the following condition: " +
+                                     mArgs[index].mValidator.message);
+        }
       }
 
       i += mValues[index].value.size() + 1;
@@ -198,9 +240,9 @@ public:
   //======================//
   //   prog information   //
   //===============================================================================================//
-  string usage() const
+  std::string usage() const
   {
-    string usage = "";
+    std::string usage = "";
 
     //write header
     if (mProgramName.size())
@@ -218,35 +260,35 @@ public:
     usage += "usage : " + mBinName + " [Options]\n";
     usage += "Required options:\n";
     for (auto &arg : mArgs)
-      if (!arg.mOptional)
+      if (!arg.mInfo.optional)
         usage += " " + arg.to_string();
     usage += "Optional options:\n";
     for (auto &arg : mArgs)
-      if (arg.mOptional)
+      if (arg.mInfo.optional)
         usage += " " + arg.to_string();
 
     return usage;
   }
 
-  string error_messages() const
+  std::string error_messages() const
   {
-    string msg = "";
+    std::string msg = "";
     int i = 0;
     for (const auto &s : mErrorMessages)
-      msg += (" " + to_string(++i) + ".  " + s + "\n");
+      msg += (" " + std::to_string(++i) + ".  " + s + "\n");
     return msg;
   }
 
   //======================//
   //     add Argument     //
   //===============================================================================================//
-  Argument *add(const string &name, size_t num = 1, bool optional = false, const string &help = "")
+  Argument *add(const std::string &name, size_t num = 1, bool optional = false, const std::string &help = "")
   {
     Value init(num, "0");
     return add(name, init, optional, help);
   }
 
-  Argument *add(const string &name, const Value &init, bool optional = false, const string &help = "")
+  Argument *add(const std::string &name, const Value &init, bool optional = false, const std::string &help = "")
   {
 
     if (!is_valid_name(name))
@@ -270,13 +312,13 @@ public:
     return nullptr;
   }
 
-  Argument *add(const string &name, const string &altname, size_t num = 1, bool optional = false, const string &help = "")
+  Argument *add(const std::string &name, const std::string &altname, size_t num = 1, bool optional = false, const std::string &help = "")
   {
     Value init(num, "0");
     return add(name, altname, init, optional, help);
   }
 
-  Argument *add(const string &name, const string &altname, const Value &init, bool optional = false, const string &help = "")
+  Argument *add(const std::string &name, const std::string &altname, const Value &init, bool optional = false, const std::string &help = "")
   {
     if (!is_valid_name(name) || !is_valid_name(altname))
     {
@@ -306,7 +348,7 @@ public:
   //   get argument value   //
   //===============================================================================================//
   template <typename T>
-  T get_value(const string &name, size_t id = 0) const
+  T get_value(const std::string &name, size_t id = 0) const
   {
     T out;
 
@@ -323,16 +365,16 @@ public:
   }
 
   template <typename T>
-  vector<T> get_values(const string &name) const
+  std::vector<T> get_values(const std::string &name) const
   {
-    vector<T> out;
+    std::vector<T> out;
     get_values(name, out);
 
     return out;
   }
 
   template <typename T>
-  void get_values(const string &name, vector<T> &out) const
+  void get_values(const std::string &name, std::vector<T> &out) const
   {
     out.clear(); //making sure the vector is empty
 
@@ -355,7 +397,7 @@ public:
   //   check if an argument was parsed   //
   //===============================================================================================//
 
-  bool found(const string &name)
+  bool found(const std::string &name)
   {
     auto search = mIndices.find(name);
     if (search == mIndices.end())
@@ -368,7 +410,7 @@ public:
   //    helper functions    //
   //===============================================================================================//
 private:
-  bool is_valid_name(const string &name)
+  bool is_valid_name(const std::string &name)
   {
     if (name.size() <= 1 || name[0] != '-')
       return false;
@@ -381,7 +423,7 @@ private:
   template <typename T>
   inline void get_value(size_t argIndex, size_t valueIndex, T &out) const
   {
-    istringstream ss(mValues[argIndex].value.at(valueIndex));
+    std::istringstream ss(mValues[argIndex].value.at(valueIndex));
     ss >> out;
   }
 
@@ -389,13 +431,13 @@ private:
   //    class attributes    //
   //===============================================================================================//
 private:
-  string mBinName;
-  string mProgramName;
-  string mDescription;
+  std::string mBinName;
+  std::string mProgramName;
+  std::string mDescription;
 
-  unordered_map<string, size_t> mIndices;
-  vector<Argument> mArgs;
-  vector<Value> mValues;
+  std::unordered_map<std::string, size_t> mIndices;
+  std::vector<Argument> mArgs;
+  std::vector<Value> mValues;
 
-  vector<string> mErrorMessages;
+  std::vector<std::string> mErrorMessages;
 };
