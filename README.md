@@ -11,6 +11,8 @@ Below is the list of available classes:
 - __Description__ : a simple argument parser to manage of CLI arguments.
 - __Usage__ : This is a standalone header-only c++ file. There is not need to build it, just include it in your code and you are good to go
 
+-------
+
 #### Notes
 This code is this repo is compiled from my personal projects.
 It has not been thoroughly tested and its features reflects the requirements of my projects.
