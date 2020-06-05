@@ -21,10 +21,7 @@ int main(int argc, char **argv)
   if (args.found("-h") || args.found("--help"))
     std::cout << args.usage() << std::endl;
 
-  cout << args.get_value<string>("-a1") << endl;
-
-  //! not working !//
-  // cout << args.get_value<int>("-a2", 1) << endl;
+  cout << args.get_value<float>("-a2") << endl;
 
   return 0;
 }

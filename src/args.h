@@ -29,9 +29,6 @@
  * 
  */
 
-//! CURRENT ISSUES !//
-//  - casting to other than "string" in get_value<>() and get_values<>() is not working
-
 //TODO
 //  - Add the possiblity to validate parsed input
 //  - Better management of errors (warnings vs. errors)
@@ -43,6 +40,9 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -381,20 +381,8 @@ private:
   template <typename T>
   inline void get_value(size_t argIndex, size_t valueIndex, T &out) const
   {
-    if (typeid(out) == typeid(string))
-      out = mValues[argIndex].value.at(valueIndex);
-    else if (typeid(out) == typeid(int))
-      out = stoi(mValues[argIndex].value.at(valueIndex));
-    else if (typeid(out) == typeid(float))
-      out = stof(mValues[argIndex].value.at(valueIndex));
-    else if (typeid(out) == typeid(double))
-      out = stod(mValues[argIndex].value.at(valueIndex));
-    else if (typeid(out) == typeid(long))
-      out = stol(mValues[argIndex].value.at(valueIndex));
-    else if (typeid(out) == typeid(long long))
-      out = stoll(mValues[argIndex].value.at(valueIndex));
-    else if (typeid(out) == typeid(long double))
-      out = stold(mValues[argIndex].value.at(valueIndex));
+    istringstream ss(mValues[argIndex].value.at(valueIndex));
+    ss >> out;
   }
 
   //========================//
