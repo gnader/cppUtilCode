@@ -9,11 +9,11 @@ int main(int argc, char **argv)
 
   args.add("-a1", 1, false, "this is a required option #1");
 
-  args.add("-a2", "--alt2", 3, true, "this is an optional option #2")->validator([](const std::string &in) {
+  args.add("-a2", "--alt2", 3, true, "this is an optional option #2").validator([](const std::string &in) {
     float value = std::stof(in);
     return value <= 30;
   });
-  args.add("-a3")->optional(true)->help("this is an optional option #3");
+  args.add("-a3").optional(true).help("this is an optional option #3");
 
   //this will fail and adds an error, option names must start with - or --
   // args.add("a4", true, 4, "this is an optional option #4");
