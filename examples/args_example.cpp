@@ -8,7 +8,6 @@ int main(int argc, char **argv)
   ArgumentManager args("example program", "an example program shocasing how to use the agrs.h class");
 
   args.add("-a1", 1, false, "this is a required option #1");
-
   args.add("-a2", "--alt2", 3, true, "this is an optional option #2").validator([](const std::string &in) {
     float value = std::stof(in);
     return value <= 30;

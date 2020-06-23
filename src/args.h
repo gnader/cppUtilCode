@@ -30,8 +30,8 @@
 
 //TODO
 //  - Better management of errors (warnings vs. errors)
+//  - Improve handeling of default values
 //  - Improve class interface
-//  - Improve internal code
 //  - Add support for positional arguments
 
 #pragma once
@@ -233,6 +233,11 @@ public:
     {
     }
 
+    inline size_t nval() const
+    {
+      return value.size();
+    }
+
   private:
     bool found;
     std::vector<std::string> value;
@@ -346,11 +351,14 @@ public:
   //===============================================================================================//
   Argument &add(const std::string &name, size_t num = 1, bool optional = false, const std::string &help = "")
   {
-    Value init(num, "0");
+    std::vector<std::string> init;
+    init.reserve(num);
+    for (size_t i = 0; i < num; ++i)
+      init.emplace_back("0");
     return add(name, init, optional, help);
   }
 
-  Argument &add(const std::string &name, const Value &init, bool optional = false, const std::string &help = "")
+  Argument &add(const std::string &name, const std::vector<std::string> &init, bool optional = false, const std::string &help = "")
   {
     if (is_valid_name(name))
     {
@@ -375,11 +383,14 @@ public:
 
   Argument &add(const std::string &name, const std::string &altname, size_t num = 1, bool optional = false, const std::string &help = "")
   {
-    Value init(num, "0");
+    std::vector<std::string> init;
+    init.reserve(num);
+    for (size_t i = 0; i < num; ++i)
+      init.emplace_back("0");
     return add(name, altname, init, optional, help);
   }
 
-  Argument &add(const std::string &name, const std::string &altname, const Value &init, bool optional = false, const std::string &help = "")
+  Argument &add(const std::string &name, const std::string &altname, const std::vector<std::string> &init, bool optional = false, const std::string &help = "")
   {
     if (is_valid_name(name) && is_valid_name(altname))
     {
