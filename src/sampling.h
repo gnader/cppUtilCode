@@ -48,5 +48,39 @@ namespace Sampling
         for (int j = 0; j < m; ++j)
           samples.emplace_back(p0 + i * dx + j * dy);
     }
+
+    template <typename T>
+    static void circle(const T &c, float r, int n, std::vector<T> &samples)
+    {
+      const float _2PI = 6.28318530718;
+      const float dtheta = _2PI / float(n);
+
+      samples.reserve(n);
+      for (int i = 0; i < n; ++i)
+      {
+        T p;
+        p(0) = c(0) + r * std::cos(i * dtheta);
+        p(1) = c(1) + r * std::sin(i * dtheta);
+        samples.emplace_back(p);
+      }
+    }
+
+    template <typename T>
+    static void disk(const T &c, float r, int n, std::vector<T> &samples)
+    {
+      const float _2PI = 6.28318530718;
+      const float _PHI = 1.61803398875; // golden ration (1+sqrt(5))/2
+
+      samples.reserve(n);
+      for (int i = 0; i < n; ++i)
+      {
+        float radius = sqrt(float(i) / n);
+        float theta = _2PI * float(i) / _PHI;
+
+        T p;
+        p(0) = c(0) + r * radius * cos(theta);
+        p(1) = c(1) + r * radius * sin(theta);
+      }
+    }
   };
 } // namespace Sampling
