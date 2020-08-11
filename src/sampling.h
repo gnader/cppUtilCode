@@ -1,5 +1,5 @@
-/* sampling.h - v0.1
- *  
+/* sampling.h - v0.8
+ *
  * LICENCE
  * Public Domain (www.unlicense.org)
  * This is free and unencumbered software released into the public domain.
@@ -29,58 +29,58 @@
 
 namespace Sampling
 {
-  class Regular
-  {
-  public:
-    template <typename T>
-    static void line(const T &x0, const T &dx, int n, std::vector<T> &samples)
+    class Regular
     {
-      samples.reserve(n);
-      for (int i = 0; i < n; ++i)
-        samples.emplace_back(x0 + i * dx);
-    }
+    public:
+        template <typename T>
+        static void line(const T &x0, const T &dx, int n, std::vector<T> &samples)
+        {
+            samples.reserve(n);
+            for (int i = 0; i < n; ++i)
+                samples.emplace_back(x0 + i * dx);
+        }
 
-    template <typename T>
-    static void grid(const T &p0, const T &dx, const T &dy, int n, int m, std::vector<T> &samples)
-    {
-      samples.reserve(n * m);
-      for (int i = 0; i < n; ++i)
-        for (int j = 0; j < m; ++j)
-          samples.emplace_back(p0 + i * dx + j * dy);
-    }
+        template <typename T>
+        static void grid(const T &p0, const T &dx, const T &dy, int n, int m, std::vector<T> &samples)
+        {
+            samples.reserve(n * m);
+            for (int i = 0; i < n; ++i)
+                for (int j = 0; j < m; ++j)
+                    samples.emplace_back(p0 + i * dx + j * dy);
+        }
 
-    template <typename T>
-    static void circle(const T &c, float r, int n, std::vector<T> &samples)
-    {
-      const float _2PI = 6.28318530718;
-      const float dtheta = _2PI / float(n);
+        template <typename T>
+        static void circle(const T &c, float r, int n, std::vector<T> &samples)
+        {
+            const float _2PI = 6.28318530718;
+            const float dtheta = _2PI / float(n);
 
-      samples.reserve(n);
-      for (int i = 0; i < n; ++i)
-      {
-        T p;
-        p(0) = c(0) + r * std::cos(i * dtheta);
-        p(1) = c(1) + r * std::sin(i * dtheta);
-        samples.emplace_back(p);
-      }
-    }
+            samples.reserve(n);
+            for (int i = 0; i < n; ++i)
+            {
+                T p;
+                p(0) = c(0) + r * std::cos(i * dtheta);
+                p(1) = c(1) + r * std::sin(i * dtheta);
+                samples.emplace_back(p);
+            }
+        }
 
-    template <typename T>
-    static void disk(const T &c, float r, int n, std::vector<T> &samples)
-    {
-      const float _2PI = 6.28318530718;
-      const float _PHI = 1.61803398875; // golden ration (1+sqrt(5))/2
+        template <typename T>
+        static void disk(const T &c, float r, int n, std::vector<T> &samples)
+        {
+            const float _2PI = 6.28318530718;
+            const float _PHI = 1.61803398875; // golden ration (1+sqrt(5))/2
 
-      samples.reserve(n);
-      for (int i = 0; i < n; ++i)
-      {
-        float radius = sqrt(float(i) / n);
-        float theta = _2PI * float(i) / _PHI;
+            samples.reserve(n);
+            for (int i = 0; i < n; ++i)
+            {
+                float radius = sqrt(float(i) / n);
+                float theta = _2PI * float(i) / _PHI;
 
-        T p;
-        p(0) = c(0) + r * radius * cos(theta);
-        p(1) = c(1) + r * radius * sin(theta);
-      }
-    }
-  };
+                T p;
+                p(0) = c(0) + r * radius * cos(theta);
+                p(1) = c(1) + r * radius * sin(theta);
+            }
+        }
+    };
 } // namespace Sampling
