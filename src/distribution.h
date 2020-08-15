@@ -37,13 +37,13 @@ protected:
   typedef Eigen::SimplicialLDLT<SparseMatrix> SolverType;
 
 public:
-  RealDistribution(Scalar min = 0., Scalar max = 0.)
+  RealDistribution(Scalar min = 0., Scalar max = 1.)
       : mMin(min), mMax(max), mDx(1.), mSolverReady(false), mUniform(0., 1.)
   {
     default_cdf();
   }
 
-  RealDistribution(Scalar *pdf, int n, Scalar min = 0., Scalar max = 0.)
+  RealDistribution(Scalar *pdf, int n, Scalar min = 0., Scalar max = 1.)
       : mMin(min), mMax(max), mDx(1. / Scalar(n)), mSolverReady(false), mUniform(0., 1.)
   {
     compute_cdf(pdf, n);
