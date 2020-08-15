@@ -13,7 +13,7 @@ else()
 endif()
 
 ## EXTERNAL LIBS ###############################################################
-find_package(eigen REQUIRED)
+find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIRS})
 
 # FILES ###########################################################################################
@@ -30,4 +30,5 @@ set(CPPUTILS_HEADER_FILES
 
 # EXAMPLES ########################################################################################
 add_executable(args_example examples/args_example.cpp)
+add_executable(distribution_example examples/distribution_example.cpp)
 add_executable(sampling_example examples/sampling_example.cpp)
