@@ -24,7 +24,6 @@
  */
 #pragma once
 
-#include <vector>
 #include <random>
 
 #include <Eigen/Sparse>
@@ -38,14 +37,14 @@ protected:
   typedef Eigen::SimplicialLDLT<SparseMatrix> SolverType;
 
 public:
-  RealDistribution(Scalar min, Scalar max)
-      : mMin(min), mMax(max), mSolverReady(false)
+  RealDistribution(Scalar min = 0., Scalar max = 0.)
+      : mMin(min), mMax(max), mDx(1.), mSolverReady(false), mUniform(0., 1.)
   {
     default_cdf();
   }
 
-  RealDistribution(Scalar *pdf, int n, Scalar min, Scalar max)
-      : mMin(min), mMax(max), mSolverReady(false)
+  RealDistribution(Scalar *pdf, int n, Scalar min = 0., Scalar max = 0.)
+      : mMin(min), mMax(max), mDx(1. / Scalar(n)), mSolverReady(false), mUniform(0., 1.)
   {
     compute_cdf(pdf, n);
   }
@@ -56,6 +55,12 @@ public:
   {
     mSolverReady = (grid_size() == n);
     compute_cdf(pdf, n);
+  }
+
+  template <class Engine>
+  Scalar operator()(const Engine &engine) const
+  {
+    return eval(mUniform(engine));
   }
 
 protected:
@@ -103,31 +108,39 @@ protected:
     if (!mSolverReady)
       init_solver();
 
-    const Scalar dx = 1. / Scalar(n);
-
     Vector b;
     b.resize(n, 1);
     for (int i = 0; i < n; ++i)
       b(i) = pdf[i] - 1.;
 
     //compute psi
-    Vector psi = mSolver.solve(b * dx * dx);
+    Vector psi = mSolver.solve(b * mDx * mDx);
 
     //compute the cdf
     mCdf.resize(n + 1, 1);
     mCdf(0) = 0.;
     mCdf(n) = 0.;
     for (int i = 1; i < n; ++i)
-      mCdf(i) = dx * (i + (psi(i) - psi(i - 1)));
+      mCdf(i) = mDx * (i + (psi(i) - psi(i - 1)));
+  }
+
+  Scalar eval(Scalar y) const
+  {
+    Scalar ratio = y / mDx;
+    int id = int(ratio);
+    Scalar alpha = ratio - Scalar(id);
+    Scalar x = (1. - alpha) * mCdf(id) + alpha * mCdf(id + 1);
+    return (x + (mMin)) * (mMax - mMin);
   }
 
 protected:
   Scalar mMin, mMax;
+  Scalar mDx;
   Vector mCdf;
 
   bool mSolverReady;
   SparseMatrix mLaplacian;
   SolverType mSolver;
 
-  std::uniform_real_distribution<Scalar> uniform;
+  std::uniform_real_distribution<Scalar> mUniform;
 };
