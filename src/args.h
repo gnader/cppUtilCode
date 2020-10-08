@@ -229,7 +229,7 @@ public:
     }
 
     Value(const std::vector<std::string> &init)
-        : value(init)
+        : value(init), found(false)
     {
     }
 
