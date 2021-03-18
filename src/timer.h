@@ -1,4 +1,7 @@
-/* timer.h - v1.0
+#ifndef TIMER_H
+#define TIMER_H
+
+/* timer.h - v1.01
  *  
  * LICENCE
  * Public Domain (www.unlicense.org)
@@ -19,8 +22,6 @@
  * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
- * CREDITS
- *  written in 2020 by Georges NADER
  */
 
 #include <chrono>
@@ -147,3 +148,24 @@ protected:
   TP mCurrent;     // the last time point
   Duration mTotal; // the time from the start of the timer
 };
+
+#define MEASURE_TIME(fun) \
+  Timer t;                \
+  t.start();              \
+  fun;                    \
+  double dt = t.stop();   \
+  std::cout << dt << "ms" << std::endl;
+
+#define BENCH_TIME(fun, x)    \
+  Timer t;                    \
+  double avgt = 0.;           \
+  for (int i = 0; i < x; ++i) \
+  {                           \
+    t.start();                \
+    fun;                      \
+    avgt += t.stop();         \
+  }                           \
+  avgt = avgt / double(x);    \
+  std::cout << avgt << "ms" << std::endl;
+
+#endif //TIMER_H
