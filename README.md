@@ -1,8 +1,6 @@
 ## About
 Utility functions and classes for C++
 
--------
-
 ## Content
 
 Below is the list of available classes:
@@ -17,8 +15,6 @@ Below is the list of available classes:
 - __Description__ : a simple timer class based on std::chrono.
 - __Usage__ : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go
 - __Example__ : [timer_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/timer_example.cpp)
-
--------
 
 ## Notes
 The code is this repo is compiled from my personal projects and its features reflects the requirements of my projects.
