@@ -35,8 +35,14 @@
  * Timer t;
  * t.start();
  * <SOME CODE HERE>
- * double time = t.stop();
- * std::cout << "runnig code took" << t << " ms" << std::endl ;
+ * float time = t.stop();
+ * std::cout << "runnig code took " << t << " ms" << std::endl ;
+ * 
+ * or user one of the macros
+ * 
+ * float dt;
+ * COMPUTE_TIME(<FUNCTION HERE>, dt)
+ * BENCH_TIME(<FUNCTION HERE>, 100, dt)
  */
 class Timer
 {
@@ -54,7 +60,7 @@ protected:
   //    Internal Types    //
   //===============================================================================================//
   typedef std::chrono::high_resolution_clock Clock;
-  typedef std::chrono::duration<double, std::micro> Duration;
+  typedef std::chrono::duration<float, std::micro> Duration;
   typedef std::chrono::time_point<Clock> TP;
 
 public:
@@ -107,10 +113,10 @@ public:
    * @Brief
    * returns the total time and resets the timer
   **/
-  inline double stop(UNIT unit = MILLISECONDS)
+  inline float stop(UNIT unit = MILLISECONDS)
   {
     pause();
-    double t = total(unit);
+    float t = total(unit);
     reset();
 
     return t;
@@ -121,7 +127,7 @@ public:
    * computes returns the time from the last time point
    * updates the total time and time point if the timer is running
   **/
-  inline double lap(UNIT unit = MILLISECONDS)
+  inline float lap(UNIT unit = MILLISECONDS)
   {
     TP temp = Clock::now();
     Duration d = (temp - mCurrent);
@@ -131,16 +137,16 @@ public:
       mCurrent = temp;
     }
 
-    return (d.count() / double(unit));
+    return (d.count() / float(unit));
   }
 
   /**
    * @Brief
    * returns the total time in the input unit.
   **/
-  inline double total(UNIT unit = MILLISECONDS)
+  inline float total(UNIT unit = MILLISECONDS)
   {
-    return (mTotal.count() / double(unit));
+    return (mTotal.count() / float(unit));
   }
 
 protected:
@@ -149,23 +155,25 @@ protected:
   Duration mTotal; // the time from the start of the timer
 };
 
-#define MEASURE_TIME(fun) \
-  Timer t;                \
-  t.start();              \
-  fun;                    \
-  double dt = t.stop();   \
-  std::cout << dt << "ms" << std::endl;
-
-#define BENCH_TIME(fun, x)    \
-  Timer t;                    \
-  double avgt = 0.;           \
-  for (int i = 0; i < x; ++i) \
+#define COMPUTE_TIME(fun, dt) \
   {                           \
-    t.start();                \
+    Timer __timer__;          \
+    __timer__.start();        \
     fun;                      \
-    avgt += t.stop();         \
-  }                           \
-  avgt = avgt / double(x);    \
-  std::cout << avgt << "ms" << std::endl;
+    dt = __timer__.stop();    \
+  }
+
+#define BENCH_TIME(fun, n, avgt) \
+  {                              \
+    Timer __timer__;             \
+    avgt = 0.;                   \
+    for (int i = 0; i < n; ++i)  \
+    {                            \
+      __timer__.start();         \
+      fun;                       \
+      avgt += __timer__.stop();  \
+    }                            \
+    avgt = avgt / float(n);      \
+  }
 
 #endif //TIMER_H

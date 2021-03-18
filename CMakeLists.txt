@@ -32,3 +32,4 @@ set(CPPUTILS_HEADER_FILES
 add_executable(args_example examples/args_example.cpp)
 add_executable(distribution_example examples/distribution_example.cpp)
 add_executable(sampling_example examples/sampling_example.cpp)
+add_executable(timer_example examples/timer_example.cpp)
