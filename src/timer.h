@@ -44,6 +44,11 @@
  * COMPUTE_TIME(<FUNCTION HERE>, dt)
  * BENCH_TIME(<FUNCTION HERE>, 100, dt)
  */
+
+//===============================================================================================//
+//                                       CLASS DEFINITION                                        //
+//===============================================================================================//
+
 class Timer
 {
 public:
@@ -56,9 +61,6 @@ public:
   };
 
 protected:
-  //======================//
-  //    Internal Types    //
-  //===============================================================================================//
   typedef std::chrono::high_resolution_clock Clock;
   typedef std::chrono::duration<float, std::micro> Duration;
   typedef std::chrono::time_point<Clock> TP;
@@ -72,9 +74,6 @@ public:
 
   virtual ~Timer() {}
 
-  //======================//
-  //  Main Functionality  //
-  //===============================================================================================//
   /**
    * @Brief
    * resets the timer
@@ -154,6 +153,10 @@ protected:
   TP mCurrent;     // the last time point
   Duration mTotal; // the time from the start of the timer
 };
+
+//===============================================================================================//
+//                                            MACROS                                             //
+//===============================================================================================//
 
 #define COMPUTE_TIME(fun, dt) \
   {                           \
