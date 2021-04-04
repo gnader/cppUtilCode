@@ -215,6 +215,27 @@ private:
 class ArgumentManager
 {
 public:
+  enum ErrorType
+  {
+    INVALID_ARG = 0,
+    MISSING_ARG = 1,
+    MISSING_PARAM = 2,
+    INVALID_TOKEN = 3,
+    OTHER = 4
+  };
+
+  struct ParsingError
+  {
+    ErrorType type;
+    std::string key;
+
+    ParsingError(ErrorType _type = OTHER, const std::string &_key = "-")
+        : type(_type), key(_key)
+    {
+    }
+  };
+
+public:
   ArgumentManager(const std::string &progName,
                   const std::string &progVersion,
                   const std::string &progAuthor,
@@ -312,9 +333,11 @@ public:
   }
 
   //parse from CLI
-  void parse(int argc, char **argv)
+  int parse(int argc, char **argv)
   {
     std::vector<std::string> tokens(argv, argv + argc);
+
+    mErrorList.clear();
 
     //get binary name
     size_t pos = tokens[0].find_last_of("/\\");
@@ -359,7 +382,10 @@ public:
     while (i < tokens.size())
     {
       auto loc = mArgMap.find(tokens[i]);
+
+      bool valid = is_valid_name(tokens[i]);
       bool exist = loc != mArgMap.end();
+
       if (exist)
       {
         Argument &current = mArgs[loc->second];
@@ -370,12 +396,22 @@ public:
         current.is_found(true);
       }
       else // just ignore
+      {
+        if (valid)
+          mErrorList.push_back(ParsingError(INVALID_ARG, tokens[i]));
+        else
+          mErrorList.push_back(ParsingError(INVALID_TOKEN, tokens[i]));
         i += 1;
+      }
     }
+
+    int nerr = check_parsed_args();
+
+    return nerr;
   }
 
   //output
-  void info(std::ostream &stream = std::cout) const
+  void output_info(std::ostream &stream = std::cout) const
   {
     bool has_name = mProgName.size() != 0;
     bool has_version = mProgVersion.size() != 0;
@@ -403,7 +439,7 @@ public:
     stream << std::endl;
   }
 
-  void usage(std::ostream &stream = std::cout) const
+  void output_usage(std::ostream &stream = std::cout) const
   {
     bool has_posArgs = mPosArgs.expected_nvalue() != 0;
 
@@ -438,7 +474,7 @@ public:
     stream << std::endl;
   }
 
-  void content(std::ostream &stream = std::cout) const
+  void output_content(std::ostream &stream = std::cout) const
   {
     stream << "argument value:" << std::endl;
     stream << std::left << std::setw(10) << "name"
@@ -464,6 +500,40 @@ public:
     stream << std::endl;
   }
 
+  void output_errors(std::ostream &stream = std::cout) const
+  {
+    if (mErrorList.size() > 0)
+    {
+      stream << "parsing errors:" << std::endl;
+
+      for (auto err : mErrorList)
+      {
+        auto loc = mArgMap.find(err.key);
+
+        switch (err.type)
+        {
+        case INVALID_ARG:
+          stream << "  [WARNING] arg \"" << err.key << "\" does not exist. argument is ignored !!" << std::endl;
+          break;
+        case INVALID_TOKEN:
+          stream << "  [WARNING] token \"" << err.key << "\" is not a valid key name. token is ignored !!" << std::endl;
+          break;
+        case MISSING_ARG:
+          stream << "  [ERROR] required arg  \"" << err.key << "\" was not found !!" << std::endl;
+          break;
+        case MISSING_PARAM:
+          stream << "  [ERROR] arg  \"" << err.key << "\" requires " << mArgs[loc->second].expected_nvalue() << " parameters;"
+                 << " only " << mArgs[loc->second].nvalue() << " were parsed !!" << std::endl;
+          break;
+        default:
+          break;
+        }
+      }
+
+      stream << std::endl;
+    }
+  }
+
 private:
   inline bool is_valid_name(const std::string &name)
   {
@@ -482,6 +552,38 @@ private:
     ss >> out;
   }
 
+  int check_parsed_args()
+  {
+    int n = 0;
+
+    if (mPosArgs.is_required() && !mPosArgs.is_found())
+    {
+      mErrorList.push_back(ParsingError(MISSING_ARG, mPosArgs.name()));
+      n += 1;
+    }
+    else if (mPosArgs.expected_nvalue() > mPosArgs.nvalue())
+    {
+      mErrorList.push_back(ParsingError(MISSING_PARAM, mPosArgs.name()));
+      n += 1;
+    }
+
+    for (auto arg : mArgs)
+    {
+      if (arg.is_required() && !arg.is_found())
+      {
+        mErrorList.push_back(ParsingError(MISSING_ARG, arg.name()));
+        n += 1;
+      }
+      else if (arg.expected_nvalue() > arg.nvalue())
+      {
+        mErrorList.push_back(ParsingError(MISSING_PARAM, arg.name()));
+        n += 1;
+      }
+    }
+
+    return n;
+  }
+
 private:
   // Program Info
   std::string mBinaryName;
@@ -496,6 +598,9 @@ private:
 
   // Map to arguments
   std::unordered_map<std::string, size_t> mArgMap;
+
+  // parsing errors
+  std::vector<ParsingError> mErrorList;
 };
 
 #endif //ARGMGR_H
