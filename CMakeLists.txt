@@ -19,17 +19,6 @@ include_directories(${EIGEN_INCLUDE_DIRS})
 # FILES ###########################################################################################
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-# LIB #############################################################################################
-# set(CPPUITLS_SRC_FILES)
-
-set(CPPUTILS_HEADER_FILES
-    src/args.h
-    src/sampling.h
-    src/timer.h)
-
-
 # EXAMPLES ########################################################################################
-add_executable(args_example examples/args_example.cpp)
-add_executable(distribution_example examples/distribution_example.cpp)
-add_executable(sampling_example examples/sampling_example.cpp)
+add_executable(args_example examples/argmgr_example.cpp)
 add_executable(timer_example examples/timer_example.cpp)
