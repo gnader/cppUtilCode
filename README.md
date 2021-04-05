@@ -8,16 +8,22 @@ Below is the list of available classes:
 
 #### ArgumentManager
 
-- **Code** : [args.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)
+- **Code** : [argmgr.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)
 - **Description** : a simple argument parser to manage of CLI arguments.
-- **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go
-- **Example** : [args_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/argmgr_example.cpp)
+- **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
+- **Example** : [argmgr_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/argmgr_example.cpp)
+
+#### Singleton
+
+- **Code** : [singleton.h](https://github.com/gnader/cppUtilCode/blob/master/src/singleton.h)
+- **Description** : a minimalist generic singleton class.
+- **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
 
 #### Timer
 
 - **Code** : [timer.h](https://github.com/gnader/cppUtilCode/blob/master/src/timer.h)
 - **Description** : a simple timer class based on std::chrono.
-- **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go
+- **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
 - **Example** : [timer_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/timer_example.cpp)
 
 ## Notes
