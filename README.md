@@ -13,6 +13,11 @@ Below is the list of available classes:
 - **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
 - **Example** : [argmgr_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/argmgr_example.cpp)
 
+#### GLUtils
+
+- **Code:** : [glutils/](https://github.com/gnader/cppUtilCode/blob/master/src/glutils)
+- **Description** : a collection of utility classes for openGL projects.
+
 #### Singleton
 
 - **Code** : [singleton.h](https://github.com/gnader/cppUtilCode/blob/master/src/singleton.h)
