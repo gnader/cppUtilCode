@@ -3,16 +3,16 @@ using namespace std;
 
 #include <GLFW/glfw3.h>
 
-#include "glutils/glutils.h"
-#include "glutils/shader.h"
+#include "glutils/buffer.h"
 #include "glutils/program.h"
+#include "glutils/shader.h"
 
 // #include <vector>
 
-// std::vector<float> pos = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
-// std::vector<float> tex = {0, 0, 1, 0, 1, 1, 0, 1};
+std::vector<float> pos = {-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5};
+std::vector<float> tex = {0, 0, 1, 0, 1, 1, 0, 1};
 
-// std::vector<int> indices = {0, 3, 2, 0, 2, 1};
+std::vector<int> indices = {0, 3, 2, 0, 2, 1};
 
 std::string src_v = "#version 450 core \n in vec2 vtx_pos; \n in vec2 vtx_tex; \n out vec2 tex; \n void main(void) { tex = vtx_tex; gl_Position = vec4(vtx_pos.x, vtx_pos.y, 0., 1.0); }";
 std::string src_f = "#version 450 core \n uniform sampler2D t; \n in vec2 tex; out vec4 colour; \n void main(void) { colour = vec4(texture(t, tex*3).rgb , 1.0); }";
@@ -63,6 +63,20 @@ int main(int argc, char **argv)
 
   if (prog.link())
     std::cout << "program linked successfully" << std::endl;
+
+  Buffer buffP(GL_ARRAY_BUFFER), buffT(GL_ARRAY_BUFFER), buffI(GL_ELEMENT_ARRAY_BUFFER);
+
+  std::cout << buffP.size() << " -> ";
+  buffP.set_data<float>(pos, GL_STATIC_DRAW);
+  std::cout << buffP.size() << std::endl;
+
+  std::cout << buffT.size() << " -> ";
+  buffT.set_data<float>(tex, GL_STATIC_DRAW);
+  std::cout << buffT.size() << std::endl;
+
+  std::cout << buffI.size() << " -> ";
+  buffI.set_data<int>(indices, GL_STATIC_DRAW);
+  std::cout << buffI.size() << std::endl;
 
   return 0;
 }
