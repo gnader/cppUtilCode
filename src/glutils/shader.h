@@ -25,7 +25,7 @@
 
 #include <string>
 
-#include "gl.h"
+#include "glutils.h"
 
 class Shader
 {

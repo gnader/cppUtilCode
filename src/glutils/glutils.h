@@ -1,7 +1,7 @@
-#ifndef GL_H
-#define GL_H
+#ifndef GLUTILS_H
+#define GLUTILS_H
 
-/* gl.h - v1.0
+/* glutils.h - v1.0
  *
  * LICENCE
  * Public Domain (www.unlicense.org)
@@ -25,8 +25,7 @@
 
 #include <glbinding/Binding.h>
 #include <glbinding/gl/gl.h>
-#include <glbinding-aux/ContextInfo.h>
 
 using namespace gl;
 
-#endif // GL_H
+#endif // GLUTILS_H

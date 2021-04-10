@@ -1,6 +1,6 @@
 #include "program.h"
 
-#include "gl.h"
+#include "glutils.h"
 #include "shader.h"
 
 Program::Program()
