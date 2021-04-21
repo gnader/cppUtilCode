@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.2.0)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 # OPTIONS #########################################################################################
+option(ARRAY2D_EXAMPLE "compile array2d example" ON)
 option(ARGMGR_EXAMPLE "compile argmgr example" ON)
 option(TIMER_EXAMPLE "compile timer example" ON)
 
@@ -20,6 +21,10 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
 # EXAMPLES ########################################################################################
+if(ARRAY2D_EXAMPLE)
+  add_executable(_arrar2d examples/array2d.cpp)
+endif()
+
 if(ARGMGR_EXAMPLE)
   add_executable(_argmgr examples/argmgr.cpp)
 endif()
