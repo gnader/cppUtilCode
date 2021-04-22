@@ -6,12 +6,19 @@ Utility functions and classes for C++
 
 Below is the list of available classes:
 
+#### Array2d
+
+- **Link** : [array2d.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)
+- **Description** : a 2d array argument with an interface similar to std::array.
+- **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
+- **Example** : [arrary2d.cpp](https://github.com/gnader/cpp_utils/blob/master/examples/array2d.cpp)
+
 #### ArgumentManager
 
 - **Link** : [argmgr.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)
 - **Description** : a simple argument parser to manage of CLI arguments.
 - **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
-- **Example** : [argmgr_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/argmgr_example.cpp)
+- **Example** : [argmgr.cpp](https://github.com/gnader/cpp_utils/blob/master/examples/argmgr.cpp)
 
 #### Singleton
 
@@ -24,7 +31,7 @@ Below is the list of available classes:
 - **Link** : [timer.h](https://github.com/gnader/cppUtilCode/blob/master/src/timer.h)
 - **Description** : a simple timer class based on std::chrono.
 - **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
-- **Example** : [timer_example.h](https://github.com/gnader/cpp_utils/blob/master/examples/timer_example.cpp)
+- **Example** : [timer.cpp](https://github.com/gnader/cpp_utils/blob/master/examples/timer.cpp)
 
 ## Notes
 

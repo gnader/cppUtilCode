@@ -28,7 +28,7 @@
 
 #include <array>
 
-template <typename T, std::size_t COL, std::size_t ROW>
+template <typename T, size_t COL, size_t ROW>
 class array2d
 {
 public:
@@ -41,12 +41,15 @@ public:
   typedef value_type &reference;
   typedef const value_type &const_reference;
 
+  typedef std::array<value_type, ROW> column_type;
+  typedef std::array<reference, COL> row_type;
+  typedef std::array<column_type, COL> data_type;
+
   typedef value_type *pointer;
   typedef const value_type *const_pointer;
 
-  typedef std::array<value_type, ROW> column_type;
-  typedef std::array<value_type, COL> row_type;
-  typedef std::array<std::array<value_type, ROW>, COL> data_type;
+  typedef typename column_type::iterator iterator;
+  typedef typename column_type::const_iterator const_iterator;
 
 public:
   //============================================
@@ -60,18 +63,17 @@ public:
 
   array2d(const std::initializer_list<T> &list)
   {
-    pointer ptr = data();
-    if (list.size() == COL * ROW)
-      for (const_reference l : list)
-        *ptr++ = l;
+    iterator itr = begin();
+    for (const_reference l : list)
+      *itr++ = l;
   }
 
   array2d(const std::initializer_list<std::initializer_list<T>> &list)
   {
-    pointer ptr = data();
+    iterator itr = begin();
     for (const std::initializer_list<T> &col : list)
       for (const_reference l : col)
-        *ptr++ = l;
+        *itr++ = l;
   }
 
   array2d &operator=(const array2d &) = default;
@@ -80,17 +82,17 @@ public:
   //============================================
   //                Data Access
   //============================================
-  reference at(std::size_t col, std::size_t row)
+  reference at(size_t col, std::size_t row)
   {
     return mData.at(col).at(row);
   }
 
-  const_reference at(std::size_t col, std::size_t row) const
+  const_reference at(size_t col, std::size_t row) const
   {
     return mData.at(col).at(row);
   }
 
-  reference at(std::size_t i)
+  reference at(size_t i)
   {
     std::size_t col = i / ROW;
     std::size_t row = i - col * ROW;
@@ -98,7 +100,7 @@ public:
     return at(col, row);
   }
 
-  const_reference at(std::size_t i) const
+  const_reference at(size_t i) const
   {
     std::size_t col = i / ROW;
     std::size_t row = i - col * ROW;
@@ -106,25 +108,17 @@ public:
     return at(col, row);
   }
 
-  reference operator()(std::size_t col, std::size_t row) noexcept
+  reference operator()(size_t col, size_t row) noexcept
   {
     return mData[col][row];
   }
 
-  const_reference operator()(std::size_t col, std::size_t row) const noexcept
+  const_reference operator()(size_t col, size_t row) const noexcept
   {
     return mData[col][row];
   }
 
-  const_reference operator()(std::size_t i) const noexcept
-  {
-    std::size_t col = i / ROW;
-    std::size_t row = i - col * ROW;
-
-    return mData[col][row];
-  }
-
-  reference operator()(std::size_t i) noexcept
+  const_reference operator()(size_t i) const noexcept
   {
     std::size_t col = i / ROW;
     std::size_t row = i - col * ROW;
@@ -132,7 +126,15 @@ public:
     return mData[col][row];
   }
 
-  const_reference operator[](std::size_t i) const noexcept
+  reference operator()(size_t i) noexcept
+  {
+    std::size_t col = i / ROW;
+    std::size_t row = i - col * ROW;
+
+    return mData[col][row];
+  }
+
+  const_reference operator[](size_t i) const noexcept
   {
     std::size_t col = i / ROW;
     std::size_t row = i - col * ROW;
@@ -170,27 +172,85 @@ public:
     return mData.data()->data();
   }
 
+  column_type &col(size_t i)
+  {
+    return mData.at(i);
+  }
+
+  const column_type &col(size_t i) const
+  {
+    return mData.at(i);
+  }
+
   //============================================
   //                iterators
   //============================================
+  iterator begin() noexcept
+  {
+    return mData.front().begin();
+  }
+
+  const_iterator begin() const noexcept
+  {
+    return mData.front().begin();
+  }
+
+  iterator end() noexcept
+  {
+    return mData.back().end();
+  }
+
+  const_iterator end() const noexcept
+  {
+    return mData.back().end();
+  }
+
+  iterator begin_col(size_t i)
+  {
+    return mData.at(i).begin();
+  }
+
+  const_iterator begin_col(size_t i) const
+  {
+    return mData.at(i).begin();
+  }
+
+  iterator end_col(size_t i)
+  {
+    return mData.at(i).end();
+  }
+
+  const_iterator end_col(size_t i) const
+  {
+    return mData.at(i).end();
+  }
 
   //============================================
   //                capacity
   //============================================
   inline size_type size() const noexcept { return {COL, ROW}; }
+  inline size_t size_col() const noexcept { return ROW; }
+  inline size_t size_row() const noexcept { return COL; }
 
-  inline size_t col_size() const noexcept { return COL; }
-  inline size_t row_size() const noexcept { return ROW; }
+  inline size_t max_size() const noexcept { return COL * ROW; }
+  inline size_t num() const noexcept { return COL * ROW; }
+  inline size_t num_col() const noexcept { return COL; }
+  inline size_t num_row() const noexcept { return ROW; }
 
-  inline size_t element_size() const noexcept { return COL * ROW; }
-
-  inline bool empty() const noexcept { return element_size() == 0; }
+  inline bool empty() const noexcept { return num() == 0; }
 
   //============================================
   //                operations
   //============================================
+  void fill(const T &value)
+  {
+    iterator itr = begin();
+    iterator finish = end();
+    while (itr != finish)
+      *itr++ = value;
+  }
 
-protected:
+public:
   data_type mData;
 };
 
