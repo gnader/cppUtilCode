@@ -8,7 +8,7 @@ Below is the list of available classes:
 
 #### Array2d
 
-- **Link** : [array2d.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)
+- **Link** : [array2d.h](https://github.com/gnader/cppUtilCode/blob/master/src/array2d.h)
 - **Description** : a 2d array argument with an interface similar to std::array.
 - **Usage** : This is a standalone header-only c++ file. There is no need to build it, just include it in your code and you are good to go.
 - **Example** : [arrary2d.cpp](https://github.com/gnader/cpp_utils/blob/master/examples/array2d.cpp)
