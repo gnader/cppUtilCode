@@ -10,6 +10,7 @@ Below is the list of available classes:
 | -------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [array2d.h](https://github.com/gnader/cppUtilCode/blob/master/src/array2d.h)     | a 2d column major array with an interface similar to std::array |
 | [argmgr.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)       | an argument parser to manage of CLI arguments                   |
+| [colormap.h](https://github.com/gnader/cpp_utils/blob/master/src/colormap.h)     | a simple 1D colormap class                                      |
 | [singleton.h](https://github.com/gnader/cppUtilCode/blob/master/src/singleton.h) | a generic singleton class                                       |
 | [timer.h](https://github.com/gnader/cppUtilCode/blob/master/src/timer.h)         | a timer class based on std::chrono                              |
 
