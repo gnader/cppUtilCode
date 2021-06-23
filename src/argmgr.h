@@ -33,12 +33,11 @@
 #include <unordered_map>
 #include <vector>
 
-/* 
- * TODO : 
- *   ////1. report parsing issues
- *   2. serialize to yaml file
- *   3. read from yaml file
- */
+// TODO :
+// [x] report parsing issues
+// [ ] add documentation
+// [ ] serialize to yaml file
+// [ ] read from yaml file
 
 class Argument
 {

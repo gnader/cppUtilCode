@@ -23,8 +23,8 @@
   * SOFTWARE.
   */
 
-#ifndef ARRAY_2D
-#define ARRAY_2D
+#ifndef __ARRAY_2D__
+#define __ARRAY_2D__
 
 #include <array>
 
@@ -38,7 +38,8 @@
  * std::array2d<float, 2, 3> arr2 {{1, 2, 3,}, {4, 5, 6}};
  */
 
-//TODO : add an iterator over the elemets of a row
+//TODO
+// [ ] add an iterator over the elemets of a row
 
 namespace std
 {

@@ -23,8 +23,8 @@
   * SOFTWARE.
   */
 
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef __TIMER_H__
+#define __TIMER_H__
 
 #include <chrono>
 

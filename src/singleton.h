@@ -23,8 +23,8 @@
   * SOFTWARE.
   */
 
-#ifndef SINGLETON_H
-#define SINGLETON_H
+#ifndef __SINGLETON_H__
+#define __SINGLETON_H__
 
 #include <stdlib.h>
 
