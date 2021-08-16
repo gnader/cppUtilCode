@@ -38,6 +38,7 @@ class BaseAttributeArray
 {
 public:
   // Constructor
+  BaseAttributeArray() : mName("") {}
   BaseAttributeArray(const char *name) : mName(name) {}
 
   //destructor
@@ -60,6 +61,9 @@ public:
 
   // Extend the number of elements by n elements.
   virtual void increase_size(size_t n = 1) = 0;
+
+  // Empty the container storage
+  virtual void clear() = 0;
 
   // Free unused memory.
   virtual void shrink_to_fit() = 0;
@@ -89,6 +93,11 @@ public:
   typedef typename ContainerType::reference Ref;
   typedef typename ContainerType::const_reference ConstRef;
 
+  AttributeArray(T t = T())
+      : BaseAttributeArray(), mDefault(t)
+  {
+  }
+
   AttributeArray(const char *name, T t = T())
       : BaseAttributeArray(name), mDefault(t)
   {
@@ -115,6 +124,11 @@ public:
   {
     for (size_t i = 0; i < n; ++i)
       mData.push_back(mDefault);
+  }
+
+  virtual void clear() = 0
+  {
+    mData.clear();
   }
 
   virtual void shrink_to_fit()
@@ -204,11 +218,6 @@ public:
   {
   }
 
-  ElementAttribute(const ElementAttribute &other)
-  {
-    mArray = other.mArray;
-  }
-
   virtual ~ElementAttribute()
   {
     reset();
@@ -272,6 +281,11 @@ public:
   {
   }
 
+  ElementAttributeList(size_t size)
+      : mSize(size)
+  {
+  }
+
   // copy constructor : performs a deep copy of all the element attributes
   ElementAttributeList(const ElementAttributeList &other)
   {
@@ -290,6 +304,7 @@ public:
     if (this != &other)
     {
       clear();
+      mDict.reserve(other.num_attributes());
       mSize = other.size();
       for (const auto &it : other.mDict)
         mDict[it.first] = it.second->clone();
