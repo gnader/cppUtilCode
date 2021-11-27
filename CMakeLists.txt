@@ -6,6 +6,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # OPTIONS #########################################################################################
 option(ARRAY2D_EXAMPLE "compile array2d example" ON)
 option(ARGMGR_EXAMPLE "compile argmgr example" ON)
+option(CONSOLE_EXAMPLE "compile console example" ON)
 option(TIMER_EXAMPLE "compile timer example" ON)
 
 # COMPILER OPTIONS ################################################################################
@@ -31,4 +32,8 @@ endif()
 
 if(TIMER_EXAMPLE)
   add_executable(_timer examples/timer.cpp)
+endif()
+
+if(TIMER_EXAMPLE)
+  add_executable(_log examples/log.cpp)
 endif()

@@ -12,6 +12,7 @@ Below is the list of available classes:
 | [argmgr.h](https://github.com/gnader/cppUtilCode/blob/master/src/argmgr.h)         | an argument parser to manage of CLI arguments                   |
 | [attributes.h](https://github.com/gnader/cppUtilCode/blob/master/src/attributes.h) | a genertic class to hander attributes attached to an object     |
 | [colormap.h](https://github.com/gnader/cpp_utils/blob/master/src/colormap.h)       | a simple 1D colormap class                                      |
+| [log.h](https://github.com/gnader/cpp_utils/blob/master/src/log.h)                 | a basic log class that prints message to console or files       |
 | [singleton.h](https://github.com/gnader/cppUtilCode/blob/master/src/singleton.h)   | a generic singleton class                                       |
 | [timer.h](https://github.com/gnader/cppUtilCode/blob/master/src/timer.h)           | a timer class based on std::chrono                              |
 
